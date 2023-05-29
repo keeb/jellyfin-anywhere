@@ -1,0 +1,30 @@
+version: '3.5'
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin-anywhere
+    user: 1000:1001
+    environment:
+      - JELLYFIN_FFmpeg__probesize=50000000
+      - JELLYFIN_FFmpeg__analyzeduration=50000000
+    volumes:
+      - /storage/02/linux/docker/jellyfin:/config
+      - /storage/02/linux/docker/jellyfin:/cache
+      - /storage/02/media:/media
+    restart: 'unless-stopped'
+    networks:
+      - web
+  nginx:
+    container_name: proxy
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
